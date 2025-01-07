@@ -14,7 +14,6 @@ from sklearn.neighbors import NearestNeighbors
 # Using FastAPI for Geertting API
 from typing import Union
 from fastapi import FastAPI
-import json 
 
 # initialize supabase connection
 url: str = os.environ.get("SUPABASE_URL")
@@ -189,20 +188,18 @@ def recommend_places_hybrid(user_id, n=5, weight_content=0.6, weight_proximity=0
     # Return top `n` recommendations
     return recommendations.head(n)
 
+def users_has_interactions(user_id):
+    if user_id not in interactions_df["user_id"].values:
+        return False
+    return True
 
-app = FastAPI()
+def recommend_places(user_id, n=5, method="hybrid"):
+    if method == "content_based":
+        return recommend_places_content_based(user_id=user_id, n=n)
+    elif method == "near_bookmarks":
+        return recommend_places_near_bookmarks(user_id=user_id, n=n)
+    elif method == "random":
+        return places_df.sample(n=n)
+    else:
+        return recommend_places_hybrid(user_id=user_id, n=n)
 
-@app.get("/")
-def read_root():
-    recommendations = recommend_places_hybrid(user_id="da170574-dbb5-43d6-b321-f57d2bc5ae91", n=10)
-    return {"recommendations": recommendations.to_dict(orient="records")}
-
-
-@app.get("/recommend/{item_id}")
-def read_item(item_id: str, q: Union[str, None] = None):
-    recommendations = recommend_places_hybrid(user_id=item_id, n=10)
-    return {"recommendations": recommendations.to_dict(orient="records")}
-    # return {"item_id": item_id, "q": q}
-
-# recommendations = recommend_places_hybrid(user_id="da170574-dbb5-43d6-b321-f57d2bc5ae91", n=10)
-# print(recommendations)
