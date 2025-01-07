@@ -1,0 +1,9 @@
+# pytho caches
+__pycache__/
+__pycache__
+__pycache__/*
+
+# pycharm
+*.idea/
+*.venv/
+
