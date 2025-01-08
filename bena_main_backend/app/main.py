@@ -1,6 +1,8 @@
 # backend models
 from app.recommendation_model import recommend_places
 from app.recommendation_model import users_has_interactions
+from app.search_places_model import find_places_near_place_id
+from app.search_places_model import smart_search
 # FastAPI
 from typing import Union
 from fastapi import FastAPI
@@ -39,9 +41,19 @@ def read_item(user_id: str, method: Union[str, None] = None, length: Union[int, 
 # search a place APIs
 @app.get("/search/places/{query}")
 def read_item(query: str):
-    return {"query": query}
+    # get the search results
+    result = smart_search(query)
+    # send the response
+    return {"search_results": result.to_dict(orient="records"), "length": len(result), "searched_query": query}
 
 # places near to a place API
 @app.get("/search/places/near/{place_id}")
-def read_item(place_id: str, length: Union[int, None] = None):
-    return {"place_id": place_id, "length": length}
+def read_item(place_id: str, length: Union[int, None] = None, radius: Union[float, None] = None):
+    # manage length margins and fix wrong inputs
+    if length is None or length < 1 or length > 5: length = 5
+    # manage radius margins and fix wrong inputs
+    if radius is None or radius < 0 or radius > 5: radius = 1
+    # get the nearby places
+    result = find_places_near_place_id(place_id, n=length, radius=radius)
+    # send the response
+    return {"near_places": result.to_dict(orient="records"), "searched_place_id": place_id, "length": len(result), "radius": radius}

@@ -11,9 +11,6 @@ from supabase import create_client, Client
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors
-# Using FastAPI for Geertting API
-from typing import Union
-from fastapi import FastAPI
 
 # initialize supabase connection
 url: str = os.environ.get("SUPABASE_URL")
