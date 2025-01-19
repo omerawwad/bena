@@ -16,26 +16,6 @@ from sklearn.neighbors import NearestNeighbors
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
-
-
-# fetch places data from database into dataframe
-table_name = "places"
-response = supabase.table(table_name).select("*").execute()
-data = response.data
-places_df = pd.DataFrame(data)
-# fetch bookmarks data from database into dataframe
-table_name = "bookmarks"
-response = supabase.table(table_name).select("*").execute()
-data = response.data
-bookmarks_df = pd.DataFrame(data)
-# fetch interactions data from database into dataframe
-table_name = "interactions"
-response = supabase.table(table_name).select("*").execute()
-data = response.data
-interactions_df = pd.DataFrame(data)
-# merge interactions and bookmarks tables
-interactions_df = interactions_df.merge(bookmarks_df, on=["user_id", "place_id"], how="outer")
-
 def update_dataframes():
     # fetch places data from database into dataframe
     table_name = "places"
@@ -54,20 +34,24 @@ def update_dataframes():
     interactions_df = pd.DataFrame(data)
     # merge interactions and bookmarks tables
     interactions_df = interactions_df.merge(bookmarks_df, on=["user_id", "place_id"], how="outer")  
+    # -------------------
+    # Content-Based Filtering
+    # -------------------
 
-# -------------------
-# Content-Based Filtering
-# -------------------
+    # Create a TF-IDF vectorizer for tags
+    tfidf = TfidfVectorizer(stop_words="english")
+    places_df["tags"] = places_df["tags"].fillna("")
+    tag_matrix = tfidf.fit_transform(places_df["tags"])
 
-# Create a TF-IDF vectorizer for tags
-tfidf = TfidfVectorizer(stop_words="english")
-places_df["tags"] = places_df["tags"].fillna("")
-tag_matrix = tfidf.fit_transform(places_df["tags"])
+    # Cosine similarity for places based on tags
+    cosine_sim = cosine_similarity(tag_matrix, tag_matrix)
 
-# Cosine similarity for places based on tags
-cosine_sim = cosine_similarity(tag_matrix, tag_matrix)
+    return places_df, bookmarks_df, interactions_df, cosine_sim
 
-def recommend_places_content_based(user_id, n=5):
+
+
+
+def recommend_places_content_based(user_id, places_df, cosine_sim, bookmarks_df, n=5):
     # Get the user's bookmarked places
     bookmarked_places = bookmarks_df[bookmarks_df["user_id"] == user_id]["place_id"].tolist()
     
@@ -109,7 +93,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
     return R * c
 
-def recommend_places_near_bookmarks(user_id, n=5):
+def recommend_places_near_bookmarks(user_id, places_df, bookmarks_df, n=5):
     # Get the user's bookmarked places
     bookmarked_places = bookmarks_df[bookmarks_df["user_id"] == user_id]["place_id"].tolist()
     
@@ -145,7 +129,7 @@ def recommend_places_near_bookmarks(user_id, n=5):
     # Return top `n` recommendations
     return recommendations.head(n)
 
-def recommend_places_hybrid(user_id, n=5, weight_content=0.6, weight_proximity=0.4):
+def recommend_places_hybrid(user_id,places_df, bookmarks_df, cosine_sim, n=5, weight_content=0.6, weight_proximity=0.4):
     # Get the user's bookmarked places
     bookmarked_places = bookmarks_df[bookmarks_df["user_id"] == user_id]["place_id"].tolist()
     
@@ -206,18 +190,19 @@ def recommend_places_hybrid(user_id, n=5, weight_content=0.6, weight_proximity=0
     return recommendations.head(n)
 
 def users_has_interactions(user_id):
+    interactions_df = update_dataframes()[2]
     if user_id not in interactions_df["user_id"].values:
         return False
     return True
 
 def recommend_places(user_id, n=5, method="hybrid"):
-    update_dataframes()
+    places_df, bookmarks_df, interactions_df, cosine_sim = update_dataframes()
     if method == "content_based":
-        return recommend_places_content_based(user_id=user_id, n=n)
+        return recommend_places_content_based(user_id=user_id, n=n, places_df=places_df, bookmarks_df=bookmarks_df, cosine_sim=cosine_sim)
     elif method == "near_bookmarks":
-        return recommend_places_near_bookmarks(user_id=user_id, n=n)
+        return recommend_places_near_bookmarks(user_id=user_id, n=n, places_df=places_df, bookmarks_df=bookmarks_df)
     elif method == "random":
         return places_df.sample(n=n)
     else:
-        return recommend_places_hybrid(user_id=user_id, n=n)
+        return recommend_places_hybrid(user_id=user_id, n=n, places_df=places_df, bookmarks_df=bookmarks_df, cosine_sim=cosine_sim)
 
