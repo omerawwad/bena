@@ -26,6 +26,14 @@ response = supabase.table(table_name).select("*").execute()
 data = response.data
 places_df = pd.DataFrame(data)
 
+# refetch bookmarks data from database into dataframe
+def update_dataframes():
+    # fetch places data from database into dataframe
+    table_name = "places"
+    response = supabase.table(table_name).select("*").execute()
+    data = response.data
+    places_df = pd.DataFrame(data)
+
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     R = 6371  # Radius of Earth in kilometers
@@ -37,6 +45,10 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     return R * c
 
 def find_places_near_place_id(place_id, radius=5, n=5):
+    update_dataframes()
+    if places_df.empty:
+        print("Places dataframe is empty.")
+        return pd.DataFrame()
     # Get the coordinates of the given place_id
     place = places_df[places_df["places_id"] == place_id]
     
@@ -64,6 +76,7 @@ def find_places_near_place_id(place_id, radius=5, n=5):
     return nearby_places
 
 def smart_search(query, n=10, min_score=50):
+    update_dataframes()
     if places_df.empty:
         print("Places dataframe is empty.")
         return pd.DataFrame()

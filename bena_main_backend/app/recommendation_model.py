@@ -17,6 +17,7 @@ url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
+
 # fetch places data from database into dataframe
 table_name = "places"
 response = supabase.table(table_name).select("*").execute()
@@ -34,6 +35,25 @@ data = response.data
 interactions_df = pd.DataFrame(data)
 # merge interactions and bookmarks tables
 interactions_df = interactions_df.merge(bookmarks_df, on=["user_id", "place_id"], how="outer")
+
+def update_dataframes():
+    # fetch places data from database into dataframe
+    table_name = "places"
+    response = supabase.table(table_name).select("*").execute()
+    data = response.data
+    places_df = pd.DataFrame(data)
+    # fetch bookmarks data from database into dataframe
+    table_name = "bookmarks"
+    response = supabase.table(table_name).select("*").execute()
+    data = response.data
+    bookmarks_df = pd.DataFrame(data)
+    # fetch interactions data from database into dataframe
+    table_name = "interactions"
+    response = supabase.table(table_name).select("*").execute()
+    data = response.data
+    interactions_df = pd.DataFrame(data)
+    # merge interactions and bookmarks tables
+    interactions_df = interactions_df.merge(bookmarks_df, on=["user_id", "place_id"], how="outer")  
 
 # -------------------
 # Content-Based Filtering
@@ -191,6 +211,7 @@ def users_has_interactions(user_id):
     return True
 
 def recommend_places(user_id, n=5, method="hybrid"):
+    update_dataframes()
     if method == "content_based":
         return recommend_places_content_based(user_id=user_id, n=n)
     elif method == "near_bookmarks":
