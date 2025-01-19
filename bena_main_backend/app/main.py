@@ -6,6 +6,7 @@ from app.search_places_model import smart_search
 # FastAPI
 from typing import Union
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 
 # initialize FastAPI
 app = FastAPI()
@@ -57,3 +58,22 @@ def read_item(place_id: str, length: Union[int, None] = None, radius: Union[floa
     result = find_places_near_place_id(place_id, n=length, radius=radius)
     # send the response
     return {"near_places": result.to_dict(orient="records"), "searched_place_id": place_id, "length": len(result), "radius": radius}
+
+
+@app.get("/share", response_class=HTMLResponse)
+async def redirect_with_meta():
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="refresh" content="0;url=myapp://open" />
+        <title>Redirecting...</title>
+    </head>
+    <body>
+        <p>If you are not redirected automatically, <a href="myapp://open">click here</a>.</p>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
