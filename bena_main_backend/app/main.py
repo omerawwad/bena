@@ -60,7 +60,7 @@ def read_item(place_id: str, length: Union[int, None] = None, radius: Union[floa
     return {"near_places": result.to_dict(orient="records"), "searched_place_id": place_id, "length": len(result), "radius": radius}
 
 
-@app.get("/share", response_class=HTMLResponse)
+@app.get("/share/trip:{trip_id}", response_class=HTMLResponse)
 async def redirect_with_meta():
     html_content = """
     <!DOCTYPE html>
@@ -68,7 +68,7 @@ async def redirect_with_meta():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="refresh" content="0;url=myapp://home" />
+        <meta http-equiv="refresh" content="0;url=myapp://mytrips/{trip_id}" />
         <title>Redirecting...</title>
     </head>
     <body>
