@@ -76,7 +76,6 @@ def find_places_near_place_id(place_id, radius=5, n=5):
     return nearby_places
 
 def smart_search(query, n=10, min_score=50):
-    update_dataframes()
     if places_df.empty:
         print("Places dataframe is empty.")
         return pd.DataFrame()

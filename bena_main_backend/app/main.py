@@ -68,7 +68,7 @@ async def redirect_with_meta():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="refresh" content="0;url=myapp://open" />
+        <meta http-equiv="refresh" content="0;url=myapp://home" />
         <title>Redirecting...</title>
     </head>
     <body>
