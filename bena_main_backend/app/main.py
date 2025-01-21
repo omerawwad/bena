@@ -62,13 +62,20 @@ def read_item(place_id: str, length: Union[int, None] = None, radius: Union[floa
 
 @app.get("/share/trip/{trip_id}", response_class=HTMLResponse)
 async def redirect_with_meta(trip_id: str):
-    # Dynamically insert the trip_id into the HTML content
+    # Dynamically generate Open Graph metadata for the preview
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <!-- Open Graph metadata for link preview -->
+        <meta property="og:title" content="Check out this trip!" />
+        <meta property="og:description" content="Join me on this amazing trip. Tap the link to open it in Bena!" />
+        <meta name="twitter:card" content="summary_large_image" />
+        
+        <!-- Redirect -->
         <meta http-equiv="refresh" content="0;url=myapp://mytrips/{trip_id}" />
         <title>Redirecting...</title>
     </head>
