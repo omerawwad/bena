@@ -62,7 +62,8 @@ def read_item(place_id: str, length: Union[int, None] = None, radius: Union[floa
 
 @app.get("/share/trip/{trip_id}", response_class=HTMLResponse)
 async def redirect_with_meta(trip_id: str):
-    html_content = """
+    # Dynamically insert the trip_id into the HTML content
+    html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -72,7 +73,7 @@ async def redirect_with_meta(trip_id: str):
         <title>Redirecting...</title>
     </head>
     <body>
-        <p>If you are not redirected automatically, <a href="myapp://open">click here</a>.</p>
+        <p>If you are not redirected automatically, <a href="myapp://mytrips/{trip_id}">click here</a>.</p>
     </body>
     </html>
     """
