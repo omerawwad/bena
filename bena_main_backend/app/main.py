@@ -61,7 +61,7 @@ def read_item(place_id: str, length: Union[int, None] = None, radius: Union[floa
 
 
 @app.get("/share/trip/{trip_id}", response_class=HTMLResponse)
-async def redirect_with_meta():
+async def redirect_with_meta(trip_id: str):
     html_content = """
     <!DOCTYPE html>
     <html lang="en">
