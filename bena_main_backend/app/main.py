@@ -60,7 +60,7 @@ def read_item(place_id: str, length: Union[int, None] = None, radius: Union[floa
     return {"near_places": result.to_dict(orient="records"), "searched_place_id": place_id, "length": len(result), "radius": radius}
 
 
-@app.get("/share/trip:{trip_id}", response_class=HTMLResponse)
+@app.get("/share/trip/{trip_id}", response_class=HTMLResponse)
 async def redirect_with_meta():
     html_content = """
     <!DOCTYPE html>
